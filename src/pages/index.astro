@@ -31,6 +31,10 @@ import { site, hero, steps, features, strip, categories, faqs, signup } from '..
 
           <p class="lead hero-sub">{hero.subhead}</p>
 
+          {/* Answers the misread head-on instead of hoping people scroll
+              far enough to figure it out. */}
+          <p class="hero-clarifier">{hero.clarifier}</p>
+
           <!-- Primary CTA, above the fold, highest-contrast element on the page -->
           <div class="hero-cta">
             <SignupForm id="signup-hero" variant="compact" />
@@ -98,8 +102,8 @@ import { site, hero, steps, features, strip, categories, faqs, signup } from '..
         <div class="section-head">
           <h2>Three taps from "I'm hungry" to a plan</h2>
           <p class="lead">
-            No group poll. No spreadsheet. No one stuck being the person who has
-            to decide for everybody.
+            No group poll. No pitching ideas one at a time and watching them get
+            shot down. Nobody stuck being the person who has to decide.
           </p>
         </div>
 
@@ -138,7 +142,9 @@ import { site, hero, steps, features, strip, categories, faqs, signup } from '..
                 <FeatureIcon name={feature.icon} />
                 <div>
                   <h3>{feature.title}</h3>
-                  <p>{feature.body}</p>
+                  {/* Authored copy, not user input — the only markup used is
+                      <em>, which styles a mode name as an accent term. */}
+                  <p set:html={feature.body} />
                 </div>
               </li>
             ))
@@ -262,7 +268,22 @@ import { site, hero, steps, features, strip, categories, faqs, signup } from '..
 
   .hero-sub {
     margin-top: 1.15rem;
-    max-width: 33rem;
+    /* Wider than the old one-sentence version: the subhead now carries the
+       explanation, and a narrower measure pushed the CTA below the fold. */
+    max-width: 37rem;
+  }
+
+  /* Quiet but deliberate — a rule down the side marks it as an aside,
+     so it corrects the misreading without shouting over the subhead. */
+  .hero-clarifier {
+    margin-top: 1.05rem;
+    padding-left: 0.9rem;
+    border-left: 2px solid var(--c-neon);
+    max-width: 34rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    font-weight: 550;
+    color: var(--c-text-muted);
   }
 
   .hero-cta {
@@ -553,6 +574,14 @@ import { site, hero, steps, features, strip, categories, faqs, signup } from '..
     color: var(--c-text-muted);
     font-size: 0.92rem;
     line-height: 1.6;
+  }
+
+  /* Named modes (Sure Thing, Wildcard) — same accent for both, so they
+     read as two options of one feature rather than two unrelated things. */
+  .feature p :global(em) {
+    font-style: normal;
+    font-weight: 650;
+    color: var(--c-neon);
   }
 
   /* ══════════════════════ CTA ══════════════════════ */

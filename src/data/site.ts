@@ -12,12 +12,15 @@ export const site = {
   /** Product name. Swap this when you lock in the final name. */
   name: "YouChoose",
 
-  /** Used in the <title> tag and social previews. */
-  tagline: "Stop deciding. Start doing.",
+  /* The tagline is the second half of the <title>, so it's often the first
+     thing anyone sees — in a tab, a search result, a shared link. It has to
+     say what the app IS, not be clever. "Stop deciding. Start doing." was
+     clever and told a stranger nothing. */
+  tagline: "The decision app for couples and friends",
 
   /** Meta description — keep under ~155 characters for search results. */
   description:
-    'YouChoose ends the "what do you want to do?" loop. You both swipe, it finds what you actually agree on, and it gets smarter every time you use it.',
+    "YouChoose helps couples, roommates and friend groups decide what to do. You both swipe; it finds the one thing you actually agree on in about 30 seconds.",
 
   /** Absolute URL of the deployed site, used for canonical + OG tags. */
   url: "https://JackEstes06.github.io/YouChoose_LandingPage",
@@ -138,7 +141,7 @@ export const signup = {
   /** Microcopy around the form. */
   heading: "Get in before everyone else",
   subheading:
-    "Early access opens in waves. Drop your email and you go in the first one — plus you help pick which categories we build next.",
+    "Early access opens in waves. Drop your email and you go to the front of the line — plus you help pick which categories we build next.",
   buttonLabel: "Join the waitlist",
   buttonLabelBusy: "Adding you…",
 
@@ -195,11 +198,20 @@ export const stores = [
  */
 
 /** Above-the-fold hero. Benefit-led, second person, no product jargon.
- *  Nothing sits above the headline — it gets the first read on its own. */
+ *  Nothing sits above the headline — it gets the first read on its own.
+ *
+ *  The subhead's job changed after user testing: readers who arrived cold
+ *  couldn't tell what the app was, and several assumed it was a dating app
+ *  (swipe cards + "couples" is a strong signal). So sentence one now states
+ *  plainly what it does and who it's for, and sentence two explains the
+ *  mechanic. The clarifier below kills the dating read outright rather than
+ *  hoping people scroll far enough to work it out. */
 export const hero = {
   headline: 'Never say "I don\'t know, you pick" again',
   subhead:
-    "You both swipe. YouChoose finds the one thing you actually agree on — dinner, a movie, a hike, a board game — in about 30 seconds.",
+    "YouChoose helps couples, roommates, and friend groups make plans without the endless back-and-forth. It finds the one thing you actually agree on when you both swipe — dinner, a movie, a hike, a board game — in about 30 seconds.",
+  clarifier:
+    "It's a decision app, not a dating app. You pair with the people you're already with.",
   primaryCta: "Get early access",
   secondaryCta: "See how it works",
   proofPoints: [
@@ -214,31 +226,33 @@ export const steps = [
   {
     number: "01",
     title: "Pair up in one tap",
-    body: "Send a code to your partner, your roommate, or the whole group chat. No accounts to juggle, no setup night.",
+    body: "Send a code to your partner, your roommate, or the whole group chat. No accounts to juggle, no setup needed.",
   },
   {
     number: "02",
     title: "Swipe for 30 seconds",
-    body: "Restaurants, movies, date ideas, trails, board games. Left for no, right for yes. Do it from the couch, separately or together.",
+    body: "Real places and real options, not vague categories. Left for no, right for yes. Do it from the couch, separately or together.",
   },
   {
     number: "03",
     title: "Get one answer",
-    body: "The second you both like the same thing, it surfaces as a match — with hours, price range, and directions already attached.",
+    body: "The moment you both say yes to the same thing, it's decided — with hours, price range, and directions already attached.",
   },
 ] as const;
 
-/** Differentiator cards. This is where we separate from dumb random pickers. */
+/** Differentiator cards. This is where we separate from dumb random pickers.
+ *  `body` is rendered as HTML so mode names can be highlighted inline —
+ *  keep the markup to <em>, which the card styles as an accent term. */
 export const features = [
   {
     icon: "sparkle",
-    title: "It learns what you two like",
-    body: "Every swipe teaches it. By week three it stops suggesting the sushi place you keep rejecting and starts finding the ones you would have never searched for.",
+    title: "It learns what you both like",
+    body: "Every swipe teaches it. By week three it stops suggesting the sushi place one of you keeps rejecting, and starts finding the ones neither of you would have searched for.",
   },
   {
     icon: "dice",
-    title: "Two moods, one button",
-    body: "Sure Thing plays it safe with something you are almost certain to love. Wildcard pushes you just far enough outside your usual to be interesting.",
+    title: "Two modes, one button",
+    body: "<em>Sure Thing</em> plays it safe with something you are almost certain to love. <em>Wildcard</em> pushes you just far enough outside your usual to be interesting.",
   },
   {
     icon: "filter",
@@ -258,7 +272,7 @@ export const features = [
   {
     icon: "shield",
     title: "Your data stays yours",
-    body: "We match you with your people — not with advertisers. Your swipe history is never sold and never leaves your pair.",
+    body: "Your swipe history is never sold and never leaves your pair. No strangers, no advertisers, no public profile.",
   },
 ] as const;
 
@@ -267,8 +281,11 @@ export const features = [
  *  headline gets the first read uninterrupted — this is the first thing
  *  the eye lands on after it. */
 export const strip = {
+  /* The real, specific version of the problem — the one that actually
+     started the app. Concrete beats abstract, and it's unmistakably not
+     about meeting anyone new. */
   audience:
-    "Built for couples, roommates, and group chats that can never decide.",
+    "Built for the person who pitches seventeen restaurants and hears “meh” seventeen times — and for the person who honestly can't pick one.",
   /* Says what the row below IS. "Swipe across" read like an instruction to
      swipe the carousel itself, which is not what these are. */
   label: "These are the kinds of activities you swipe on:",
@@ -288,8 +305,14 @@ export const categories = [
   "At-home nights",
 ] as const;
 
-/** Objection-handling FAQ. Short answers only. */
+/** Objection-handling FAQ. Short answers only.
+ *  The dating-app question is first on purpose: it was the single most
+ *  common misread in testing, and the first item renders open. */
 export const faqs = [
+  {
+    q: "Wait — is this a dating app?",
+    a: "No. YouChoose is for people who are already together: partners, roommates, friend groups. You pair with someone you already know, and the app helps the two of you — or the six of you — land on something to do. There are no profiles and no strangers.",
+  },
   {
     q: "When does it launch?",
     a: "We are building toward a public beta and inviting waitlist members in waves before that. Joining the list is how you get in first.",
@@ -300,7 +323,7 @@ export const faqs = [
   },
   {
     q: "How is this different from spinning a wheel?",
-    a: "A random picker ignores both of you. YouChoose only surfaces things you have both said yes to, and it gets measurably better at guessing as it learns your history.",
+    a: "A random picker ignores both of you — which is why the answer gets vetoed. YouChoose only ever surfaces something you have both already said yes to, and it gets measurably better at guessing as it learns your history.",
   },
   {
     q: "Do I need my partner to sign up before I can try it?",
