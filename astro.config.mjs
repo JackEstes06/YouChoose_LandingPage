@@ -1,6 +1,6 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
-import icon from 'astro-icon';
+import { defineConfig } from "astro/config";
+import icon from "astro-icon";
 
 /**
  * ─────────────────────────────────────────────────────────────
@@ -16,8 +16,8 @@ import icon from 'astro-icon';
  *  or a custom domain, set `base: '/'` and update `site`.
  * ─────────────────────────────────────────────────────────────
  */
-const GITHUB_USER = 'YOUR-GITHUB-USERNAME';
-const REPO_NAME = 'youchoose-landing';
+const GITHUB_USER = "JackEstes06";
+const REPO_NAME = "YouChoose_LandingPage";
 
 export default defineConfig({
   integrations: [
@@ -26,17 +26,17 @@ export default defineConfig({
     // Simple Icons set (@iconify-json/simple-icons).
     icon({
       include: {
-        'simple-icons': ['apple', 'googleplay', 'appstore'],
+        "simple-icons": ["apple", "googleplay", "appstore"],
       },
     }),
   ],
   site: `https://${GITHUB_USER}.github.io`,
   base: `/${REPO_NAME}`,
-  trailingSlash: 'ignore',
+  trailingSlash: "ignore",
   build: {
     // Emit /index.html rather than /index/index.html — friendlier on Pages.
-    format: 'file',
-    assets: 'assets',
+    format: "file",
+    assets: "assets",
   },
   compressHTML: true,
   devToolbar: {
