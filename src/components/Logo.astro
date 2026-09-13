@@ -1,0 +1,82 @@
+---
+/**
+ * ─── THE YOUCHOOSE MARK ──────────────────────────────────────────────
+ *
+ * Two swipe cards tilted toward each other, with one check laid across
+ * the seam. The cards are the two people; the single check is the whole
+ * product — not "I approved this", but "you BOTH said yes".
+ *
+ * Why this shape, after testing several:
+ *   • It's the app's actual mechanic, not a generic abstract glyph. The
+ *     rounded-rect cards read as swipe cards; a Venn diagram of circles
+ *     would have said "overlap" without saying what's overlapping.
+ *   • It survives 16px. The silhouette is two colour blocks and a bold
+ *     white stroke — no thin lines or interior detail to disappear.
+ *   • It works with no wordmark, which is what an app icon has to do.
+ *   • The tilt gives it motion, which a static pair of cards lacked.
+ *
+ * An earlier version filled the cards' intersection instead of drawing
+ * the check. Tilted rectangles intersect in a teardrop, which looked
+ * accidental at every size — so the bright shape is now drawn on
+ * purpose rather than left to geometry.
+ *
+ * This component is the single source of the mark. The nav, the footer,
+ * the favicon and every exported store icon come from this same
+ * geometry — keep public/brand/*.svg in sync if you change it.
+ */
+
+interface Props {
+  /** Rendered pixel size of the square mark. */
+  size?: number;
+  class?: string;
+  /** Draws the dark plate behind it, as on the app icon. */
+  plate?: boolean;
+  /** Plate corner radius. 0 = square, which is what both stores require. */
+  plateRadius?: number;
+}
+
+const { size = 32, class: className, plate = false, plateRadius = 22 } = Astro.props;
+---
+
+<svg
+  class={className}
+  width={size}
+  height={size}
+  viewBox="0 0 100 100"
+  fill="none"
+  role="img"
+  aria-hidden="true"
+  focusable="false"
+>
+  {plate && <rect width="100" height="100" rx={plateRadius} fill="#070a17" />}
+
+  <!-- You -->
+  <rect
+    x="15"
+    y="20"
+    width="40"
+    height="60"
+    rx="12"
+    transform="rotate(-14 35 50)"
+    fill="#2ee6c4"
+  />
+  <!-- Them -->
+  <rect
+    x="45"
+    y="20"
+    width="40"
+    height="60"
+    rx="12"
+    transform="rotate(14 65 50)"
+    fill="#7d6bff"
+  />
+  <!-- The match: one yes, across both -->
+  <path
+    d="M33 52.5 L45 64.5 L68 39"
+    stroke="#ffffff"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>

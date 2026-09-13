@@ -1,0 +1,20 @@
+{
+  "name": "youchoose-landing",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Marketing landing page for YouChoose — the activity matching app for couples and friend groups.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@iconify-json/simple-icons": "^1.2.95",
+    "astro": "^5.13.0",
+    "astro-icon": "^1.2.0"
+  }
+}

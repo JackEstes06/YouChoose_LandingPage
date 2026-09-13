@@ -1,0 +1,255 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { Icon } from 'astro-icon/components';
+import { stores } from '../data/site';
+
+interface Props {
+  align?: 'start' | 'center';
+  compact?: boolean;
+}
+
+const { align = 'start', compact = false } = Astro.props;
+
+/**
+ * ─── STORE BADGES ────────────────────────────────────────────────────
+ *
+ * Two rendering modes, picked automatically at build time:
+ *
+ *  1. OFFICIAL ARTWORK (preferred for launch)
+ *     If public/badges/ contains the real files, they are rendered as-is
+ *     and all the chrome below gets out of the way. Expected names:
+ *
+ *         public/badges/app-store.svg     ← Apple, "Download on the App Store"
+ *         public/badges/google-play.png   ← Google, "Get it on Google Play"
+ *
+ *     .svg or .png works for either. See public/badges/README.md.
+ *
+ *  2. ICON BADGE (what you get by default, no downloads needed)
+ *     The brand marks come from the Simple Icons set via astro-icon
+ *     (@iconify-json/simple-icons), inlined as SVG at build time — no
+ *     runtime JS, no icon font, no external request. The badge is the
+ *     familiar two-line store button built around that mark.
+ *
+ *     Worth knowing: an icon set gives you the brand GLYPH, not the
+ *     official "Download on the App Store" / "Get it on Google Play"
+ *     lockup. Both companies' marketing guidelines ask for the full
+ *     lockup on a live store link, which is why mode 1 still wins when
+ *     the files are present. For a pre-launch page this is fine.
+ */
+const BADGE_DIR = 'public/badges';
+const BADGE_FILES: Record<string, string[]> = {
+  apple: ['app-store.svg', 'app-store.png'],
+  google: ['google-play.png', 'google-play.svg'],
+};
+
+function findBadge(id: string): string | null {
+  for (const file of BADGE_FILES[id] ?? []) {
+    if (fs.existsSync(path.join(process.cwd(), BADGE_DIR, file))) {
+      return file;
+    }
+  }
+  return null;
+}
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+/* Simple Icons names for each store's brand mark. Apple's own badge pairs
+   the Apple logo with the wordmark, so `apple` is the right mark here —
+   `simple-icons:appstore` (the blue "A" tile) is the app-icon glyph and is
+   also installed if you'd rather use that. */
+const ICON_NAME: Record<string, string> = {
+  apple: 'simple-icons:apple',
+  google: 'simple-icons:googleplay',
+};
+
+---
+
+<ul class:list={['badges', `badges-${align}`, compact && 'badges-compact']}>
+  {
+    stores.map((store) => {
+      const artwork = findBadge(store.id);
+      const isLink = Boolean(store.live && store.url);
+      const Tag = isLink ? 'a' : 'span';
+      const attrs = isLink
+        ? { href: store.url, target: '_blank', rel: 'noopener' }
+        : { 'aria-disabled': 'true' };
+      const label = store.live
+        ? `Download on ${store.name}`
+        : `${store.preLabel} ${store.name}`;
+
+      return (
+        <li>
+          <Tag
+            class:list={[
+              'badge',
+              artwork ? 'badge-art' : 'badge-text',
+              !store.live && 'badge-pending',
+            ]}
+            {...attrs}
+          >
+            {artwork ? (
+              <img
+                class="badge-img"
+                data-store={store.id}
+                src={`${base}/badges/${artwork}`}
+                alt={label}
+                width="180"
+                height="54"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <>
+                <Icon class="badge-mark" name={ICON_NAME[store.id]} aria-hidden="true" />
+                <span class="badge-face">
+                  <em>{store.preLabel}</em>
+                  <strong>{store.name}</strong>
+                </span>
+              </>
+            )}
+          </Tag>
+          {artwork && !store.live && <span class="badge-soon">Coming soon</span>}
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin: 0;
+  }
+
+  .badges-center {
+    justify-content: center;
+  }
+
+  /* The familiar store-button shape: near-black pill, brand mark on the
+     left, two lines of text on the right. */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.55rem 1.15rem 0.6rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(210, 222, 255, 0.32);
+    background: #05070f;
+    color: var(--c-text);
+    transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+  }
+
+  a.badge:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    background: #0b1020;
+    border-color: rgba(210, 222, 255, 0.7);
+  }
+
+  .badge-pending {
+    cursor: default;
+    opacity: 0.72;
+  }
+
+  /* Brand mark, inlined from Simple Icons by astro-icon. Sized in ems so
+     it tracks the badge's text, and colored by currentColor. */
+  .badge-mark {
+    flex: none;
+    width: 1.55em;
+    height: 1.55em;
+    color: var(--c-text);
+  }
+
+  .badge-face {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    text-align: left;
+  }
+
+  .badge-face em {
+    font-style: normal;
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--c-text-dim);
+  }
+
+  .badge-face strong {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .badges-compact .badge {
+    padding: 0.42rem 0.95rem 0.46rem 0.8rem;
+    gap: 0.6rem;
+  }
+  .badges-compact .badge-face strong {
+    font-size: 0.9rem;
+  }
+  .badges-compact .badge-face em {
+    font-size: 0.58rem;
+  }
+
+  /* ---- Official artwork mode ----------------------------------------
+     When public/badges/ contains the real files, the chrome above gets
+     out of the way: no border, no background — the supplied badge is
+     the whole control, as both stores require.
+
+     Google's badge file bakes in its own clear space, so it renders
+     visually smaller than Apple's at the same pixel height. The taller
+     height plus negative margin below cancels that out; tune the two
+     numbers if you swap in a different export.
+     ------------------------------------------------------------------ */
+  li:has(.badge-art) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+
+  .badge-art {
+    padding: 0;
+    border: none;
+    background: none;
+    border-radius: 8px;
+  }
+
+  a.badge-art:hover {
+    background: none;
+    border: none;
+  }
+
+  .badge-img {
+    display: block;
+    width: auto;
+    height: 48px;
+  }
+
+  .badge-img[data-store='google'] {
+    height: 62px;
+    margin: -7px -9px;
+  }
+
+  .badges-compact .badge-img {
+    height: 40px;
+  }
+
+  .badges-compact .badge-img[data-store='google'] {
+    height: 52px;
+    margin: -6px -8px;
+  }
+
+  .badge-soon {
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--c-text-dim);
+  }
+</style>

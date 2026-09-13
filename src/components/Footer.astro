@@ -1,0 +1,140 @@
+---
+import { site } from '../data/site';
+import StoreBadges from './StoreBadges.astro';
+import Logo from './Logo.astro';
+---
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <div class="foot-brand">
+      <a class="brand" href="#top">
+        <Logo class="brand-mark" size={34} />
+        <span>{site.name}</span>
+      </a>
+      <p class="foot-tag">{site.tagline}</p>
+    </div>
+
+    <div class="foot-col">
+      <h2>Get the app</h2>
+      <StoreBadges compact />
+      <p class="foot-fine">
+        Store listings go live at launch. Join the waitlist and we'll send the
+        link the day it ships.
+      </p>
+    </div>
+
+    <div class="foot-col">
+      <h2>Elsewhere</h2>
+      <ul class="foot-links">
+        <li><a href="#signup">Join the waitlist</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href={`mailto:${site.contactEmail}`}>{site.contactEmail}</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="wrap foot-bottom">
+    <p>© {site.copyrightYear} {site.name}. All rights reserved.</p>
+    <p class="foot-note">
+      Apple and App Store are trademarks of Apple Inc. Google Play is a trademark
+      of Google LLC.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    border-top: 1px solid var(--c-border);
+    background: linear-gradient(180deg, var(--c-bg-2), var(--c-bg));
+    padding-top: clamp(2.75rem, 6vw, 4.5rem);
+    padding-bottom: 2rem;
+  }
+
+  .foot-inner {
+    display: grid;
+    gap: 2.5rem;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 760px) {
+    .foot-inner {
+      grid-template-columns: 1.3fr 1fr 0.85fr;
+      gap: 2rem 2.5rem;
+    }
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--c-text);
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.03em;
+  }
+
+  .brand:hover {
+    text-decoration: none;
+  }
+
+  .brand-mark {
+    flex: none;
+    display: block;
+  }
+
+  .foot-tag {
+    margin-top: 0.7rem;
+    color: var(--c-text-dim);
+    font-size: 0.92rem;
+    max-width: 22rem;
+  }
+
+  .foot-col h2 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c-text-dim);
+    margin-bottom: 1rem;
+  }
+
+  .foot-fine {
+    margin-top: 0.9rem;
+    font-size: 0.8rem;
+    color: var(--c-text-dim);
+    max-width: 24rem;
+    line-height: 1.5;
+  }
+
+  .foot-links {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .foot-links a {
+    color: var(--c-text-muted);
+    font-size: 0.93rem;
+  }
+
+  .foot-links a:hover {
+    color: var(--c-neon);
+    text-decoration: none;
+  }
+
+  .foot-bottom {
+    margin-top: clamp(2rem, 5vw, 3.25rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--c-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--c-text-dim);
+  }
+
+  .foot-note {
+    max-width: 32rem;
+  }
+</style>

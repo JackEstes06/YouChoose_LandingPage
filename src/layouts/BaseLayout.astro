@@ -1,0 +1,83 @@
+---
+import '../styles/global.css';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const pageTitle = title ?? `${site.name} — ${site.tagline}`;
+const pageDescription = description ?? site.description;
+/* BASE_URL comes back with or without a trailing slash depending on config,
+   so normalise once here and build every asset path off it. */
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const ogImage = `${site.url.replace(/\/$/, '')}${base}brand/og.png`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta name="theme-color" content="#070a17" />
+    <link rel="canonical" href={site.url} />
+
+    <!-- Favicon: the mark inline as SVG, so no extra request. PNG siblings
+         in /brand cover the platforms that ignore SVG favicons. -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23070a17'/%3E%3Crect x='15' y='20' width='40' height='60' rx='12' transform='rotate(-14 35 50)' fill='%232ee6c4'/%3E%3Crect x='45' y='20' width='40' height='60' rx='12' transform='rotate(14 65 50)' fill='%237d6bff'/%3E%3Cpath d='M33 52.5L45 64.5L68 39' stroke='%23fff' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E"
+    />
+    <link rel="icon" type="image/png" sizes="192x192" href={`${base}brand/icon-192.png`} />
+    <link rel="apple-touch-icon" href={`${base}brand/apple-touch-icon.png`} />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={site.url} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+
+    <!-- Type: Inter, with a system fallback stack already set in CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+  </head>
+  <body>
+    <a href="#signup" class="skip-link">Skip to sign-up</a>
+    <slot />
+
+    <style>
+      .skip-link {
+        position: absolute;
+        top: -100px;
+        left: 1rem;
+        z-index: 999;
+        background: var(--c-neon);
+        color: var(--c-on-neon);
+        font-weight: 700;
+        padding: 0.7rem 1.1rem;
+        border-radius: 0 0 10px 10px;
+        transition: top 0.15s ease;
+      }
+      .skip-link:focus {
+        top: 0;
+      }
+    </style>
+  </body>
+</html>

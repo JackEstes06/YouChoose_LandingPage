@@ -1,0 +1,294 @@
+---
+import { site } from '../data/site';
+import Logo from './Logo.astro';
+---
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label={`${site.name} home`}>
+      <Logo class="brand-mark" size={34} />
+      <span class="brand-name">{site.name}</span>
+    </a>
+
+    {/* One set of links, presented two ways: an inline row on wide screens,
+        a drop-down panel under the bar on narrow ones. Duplicating them
+        into a separate mobile menu would put every link in the page twice
+        for screen readers and search engines. */}
+    <nav class="nav-links" id="nav-menu" aria-label="Page sections">
+      <a href="#how">How it works</a>
+      <a href="#why">Why it works</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <a class="btn btn-primary nav-cta" href="#signup">
+      <span class="cta-long">Get early access</span>
+      <span class="cta-short">Get access</span>
+    </a>
+
+    <button
+      class="nav-toggle"
+      id="nav-toggle"
+      type="button"
+      aria-controls="nav-menu"
+      aria-expanded="false"
+      aria-label="Open menu"
+    >
+      <span class="bars" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(7, 10, 23, 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .nav[data-scrolled='true'] {
+    border-bottom-color: var(--c-border);
+    background: rgba(7, 10, 23, 0.9);
+  }
+
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    min-height: 4.3rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--c-text);
+    font-weight: 800;
+    font-size: 1.13rem;
+    letter-spacing: -0.03em;
+    margin-right: auto;
+    min-width: 0;
+  }
+
+  .brand-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand:hover {
+    text-decoration: none;
+  }
+
+  .brand-mark {
+    flex: none;
+    display: block;
+  }
+
+  .nav-links a {
+    color: var(--c-text-muted);
+    font-weight: 550;
+    font-size: 0.94rem;
+  }
+
+  .nav-links a:hover {
+    color: var(--c-text);
+    text-decoration: none;
+  }
+
+  /* ---- Burger button (narrow screens only) ---- */
+  .nav-toggle {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 11px;
+    border: 1px solid var(--c-border-strong);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--c-text);
+    cursor: pointer;
+    transition: background 0.16s ease, border-color 0.16s ease;
+  }
+
+  .nav-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(146, 163, 226, 0.45);
+  }
+
+  .bars {
+    display: grid;
+    gap: 4px;
+    width: 18px;
+  }
+
+  .bars span {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.22s ease, opacity 0.16s ease;
+  }
+
+  /* Burger morphs into an X while the panel is open. */
+  .nav[data-menu='open'] .bars span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .nav[data-menu='open'] .bars span:nth-child(2) {
+    opacity: 0;
+  }
+  .nav[data-menu='open'] .bars span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .nav-cta {
+    padding: 0.62rem 1.15rem;
+    font-size: 0.93rem;
+  }
+
+  /* ---- Narrow: links become a collapsible panel under the bar ----
+     Hidden with visibility rather than `display: none` so the panel can
+     animate, and so it leaves the accessibility tree while collapsed. */
+  @media (max-width: 819px) {
+    .nav-links {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      display: grid;
+      gap: 0.15rem;
+      padding: 0.6rem var(--gutter) 1rem;
+      /* Fully opaque: the panel sits over the hero headline, and stacking
+         it on the bar's own backdrop-filter let the text read through. */
+      background: var(--c-bg);
+      border-bottom: 1px solid var(--c-border);
+      box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.9);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+    }
+
+    .nav[data-menu='open'] .nav-links {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    /* Full-width rows: a bigger tap target than inline text links. */
+    .nav-links a {
+      padding: 0.85rem 0.25rem;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--c-border);
+    }
+
+    .nav-links a:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  /* ---- Wide: inline row, no burger ---- */
+  @media (min-width: 820px) {
+    .nav-links {
+      display: flex;
+      gap: 1.6rem;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+  }
+
+  .cta-short {
+    display: none;
+  }
+
+  /* On the narrowest phones the brand and the CTA compete for the same
+     row. Shorten the CTA label rather than shrinking the tap target —
+     the CTA must stay easy to hit and impossible to miss. */
+  @media (max-width: 430px) {
+    .nav-inner {
+      gap: 0.5rem;
+    }
+    .nav-toggle {
+      width: 38px;
+      height: 38px;
+    }
+    .brand-name {
+      font-size: 1.02rem;
+    }
+    .nav-cta {
+      padding: 0.58rem 1rem;
+      font-size: 0.88rem;
+    }
+    .cta-long {
+      display: none;
+    }
+    .cta-short {
+      display: inline;
+    }
+  }
+</style>
+
+<script>
+  const nav = document.getElementById('nav');
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('nav-menu');
+
+  if (nav) {
+    const onScroll = () => {
+      nav.dataset.scrolled = window.scrollY > 12 ? 'true' : 'false';
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  if (nav && toggle && menu) {
+    const isOpen = () => nav.dataset.menu === 'open';
+
+    const setOpen = (open: boolean) => {
+      nav.dataset.menu = open ? 'open' : 'closed';
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    };
+
+    setOpen(false);
+
+    toggle.addEventListener('click', () => setOpen(!isOpen()));
+
+    // Tapping a section link should take you there and get out of the way.
+    menu.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) setOpen(false);
+    });
+
+    // Escape closes and returns focus to the button that opened it.
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && isOpen()) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    // A tap anywhere outside the bar closes it.
+    document.addEventListener('click', (event) => {
+      if (!isOpen()) return;
+      if (!nav.contains(event.target as Node)) setOpen(false);
+    });
+
+    // Rotating to landscape can cross into the desktop layout while the
+    // panel is open; reset so the state can't get stranded.
+    const wide = window.matchMedia('(min-width: 820px)');
+    wide.addEventListener('change', (event) => {
+      if (event.matches) setOpen(false);
+    });
+  }
+</script>

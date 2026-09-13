@@ -1,0 +1,71 @@
+---
+interface Props {
+  name: string;
+}
+const { name } = Astro.props;
+---
+
+<span class="fi" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    {name === 'sparkle' && (
+      <>
+        <path d="M12 3.5l1.7 4.3 4.3 1.7-4.3 1.7L12 15.5l-1.7-4.3L6 9.5l4.3-1.7z" />
+        <path d="M18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" />
+      </>
+    )}
+    {name === 'dice' && (
+      <>
+        <rect x="3" y="3" width="12" height="12" rx="3" />
+        <circle cx="7" cy="7" r="1.1" fill="currentColor" stroke="none" />
+        <circle cx="11" cy="11" r="1.1" fill="currentColor" stroke="none" />
+        <path d="M17 9h1a3 3 0 013 3v6a3 3 0 01-3 3h-6a3 3 0 01-3-3v-1" />
+        <circle cx="15.5" cy="17.5" r="1.1" fill="currentColor" stroke="none" />
+      </>
+    )}
+    {name === 'filter' && (
+      <>
+        <path d="M4 6h16M7 12h10M10 18h4" />
+        <circle cx="15" cy="6" r="2" />
+        <circle cx="9.5" cy="12" r="2" />
+      </>
+    )}
+    {name === 'users' && (
+      <>
+        <circle cx="9" cy="8" r="3.2" />
+        <path d="M3 20c0-3.1 2.7-5.4 6-5.4s6 2.3 6 5.4" />
+        <path d="M16 5.4a3.2 3.2 0 010 5.2M18.5 19.6c0-2.2-.8-3.9-2.2-5" />
+      </>
+    )}
+    {name === 'clock' && (
+      <>
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7.5V12l3.2 2" />
+      </>
+    )}
+    {name === 'shield' && (
+      <>
+        <path d="M12 3l7 3v5.5c0 4.3-2.9 8.1-7 9.5-4.1-1.4-7-5.2-7-9.5V6z" />
+        <path d="M9 12l2.2 2.2L15.5 10" />
+      </>
+    )}
+  </svg>
+</span>
+
+<style>
+  .fi {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 13px;
+    background: linear-gradient(145deg, rgba(46, 230, 196, 0.15), rgba(125, 107, 255, 0.2));
+    border: 1px solid rgba(46, 230, 196, 0.28);
+    color: var(--c-neon);
+  }
+
+  .fi svg {
+    width: 23px;
+    height: 23px;
+  }
+</style>

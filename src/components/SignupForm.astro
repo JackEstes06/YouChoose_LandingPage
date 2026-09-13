@@ -1,0 +1,429 @@
+---
+import { signup } from '../data/site';
+
+interface Props {
+  /** Unique id — this component is rendered more than once per page. */
+  id: string;
+  /** 'compact' = the inline hero form. 'full' = the big CTA section form. */
+  variant?: 'compact' | 'full';
+}
+
+const { id, variant = 'full' } = Astro.props;
+
+/**
+ * Two states live in the DOM from the start: the form, and the thank-you
+ * block that replaces it. Swapping `hidden` between them means the signup
+ * never navigates away and nothing else on the page moves — the block just
+ * changes what it says.
+ *
+ * `mode: 'link'` skips all of this and sends people to the form itself.
+ */
+const useInlineForm = signup.mode === 'post';
+const notWiredUp = !signup.configured;
+---
+
+<div class="signup" class:list={[`signup-${variant}`]} id={id} data-signup>
+  {
+    useInlineForm ? (
+      <>
+      <form
+        class="signup-form"
+        id={`${id}-form`}
+        action={signup.actionUrl}
+        method="post"
+        novalidate
+        data-sink={`${id}-sink`}
+        data-field={signup.emailFieldId}
+        data-unconfigured={notWiredUp ? 'true' : undefined}
+        data-err-empty={signup.errorEmpty}
+        data-err-at={signup.errorNoAt}
+        data-err-bad={signup.errorMalformed}
+        data-err-net={signup.errorNetwork}
+        data-busy={signup.buttonLabelBusy}
+      >
+        <div class="signup-row">
+          <label class="sr-only" for={`${id}-email`}>Your email address</label>
+          <input
+            class="signup-input"
+            id={`${id}-email`}
+            name={signup.emailFieldId || 'email'}
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            required
+            placeholder="you@email.com"
+            aria-describedby={`${id}-status`}
+          />
+          <button class="btn btn-primary btn-lg signup-submit" type="submit">
+            {signup.buttonLabel}
+            <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h13M13 6l6 6-6 6" />
+            </svg>
+          </button>
+        </div>
+        {/* The bookkeeping fields a real Google Forms submission carries.
+            A bare entry POST is usually accepted without them, but some
+            form configurations reject it — these cost nothing and remove
+            that whole class of failure. `fbzx` is filled in by JS. */}
+        <input type="hidden" name="fvv" value="1" />
+        <input type="hidden" name="pageHistory" value="0" />
+        <input type="hidden" name="fbzx" value="" />
+        <input type="hidden" name="submissionTimestamp" value="-1" />
+
+        <p class="signup-note">{signup.privacyNote}</p>
+        <p class="signup-status" id={`${id}-status`} role="alert" />
+      </form>
+      {/* The form posts into this hidden frame, so the page never navigates.
+          `target` is attached by JS, not here — without JS the form submits
+          normally to Google's own confirmation page rather than silently
+          disappearing into a frame the visitor can't see. */}
+      <iframe class="signup-sink" name={`${id}-sink`} title="Form submission target" tabindex="-1" aria-hidden="true" />
+      </>
+    ) : (
+      <div class="signup-form">
+        <div class="signup-row signup-row-link">
+          <a class="btn btn-primary btn-lg signup-submit" href={signup.viewUrl} target="_blank" rel="noopener">
+            {signup.buttonLabel}
+            <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h13M13 6l6 6-6 6" />
+            </svg>
+          </a>
+        </div>
+        <p class="signup-note">{signup.privacyNote}</p>
+      </div>
+    )
+  }
+
+  {/* Shown in place of the form once the address is accepted. */}
+  <div class="signup-done" id={`${id}-done`} role="status" tabindex="-1" hidden>
+    <span class="done-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 13l5 5L20 6" />
+      </svg>
+    </span>
+    <div class="done-text">
+      <strong>{signup.successTitle}</strong>
+      <p>{signup.successBody}</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /**
+   * Submits to Google Forms by posting the real <form> into a hidden iframe.
+   *
+   * Why not fetch(): Google Forms sends no CORS headers, so a fetch has to
+   * run in `no-cors` mode, which fails outright behind privacy extensions,
+   * strict tracking protection, and corporate proxies that block
+   * docs.google.com XHR — the visitor sees an error even though their email
+   * was fine. A native form POST into an iframe isn't subject to CORS at
+   * all, so it works everywhere a form works, and the page still never
+   * navigates.
+   *
+   * `target` is set here in JS rather than in the HTML, so with JS disabled
+   * the form does a plain submit to Google's own confirmation page instead
+   * of vanishing into an invisible frame.
+   */
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  /** Google's response can't be read cross-origin, so cap the wait. */
+  const CONFIRM_TIMEOUT_MS = 6000;
+
+  function markEveryBlockDone() {
+    // Someone who signs up in the hero shouldn't be asked again by the CTA
+    // block further down the page, so every signup block switches together.
+    document.querySelectorAll<HTMLElement>('[data-signup]').forEach((block) => {
+      const form = block.querySelector<HTMLElement>('.signup-form');
+      const done = block.querySelector<HTMLElement>('.signup-done');
+      if (form) form.hidden = true;
+      if (done) done.hidden = false;
+    });
+  }
+
+  function wire(form: HTMLFormElement) {
+    if (form.dataset.wired === 'true') return;
+    form.dataset.wired = 'true';
+
+    const block = form.closest<HTMLElement>('[data-signup]');
+    const input = form.querySelector<HTMLInputElement>('input[type="email"]');
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const status = form.querySelector<HTMLElement>('.signup-status');
+    if (!block || !input || !button || !status) return;
+
+    const originalLabel = button.innerHTML;
+
+    const fail = (message: string) => {
+      status.textContent = message;
+      status.dataset.kind = 'err';
+      input.setAttribute('aria-invalid', 'true');
+      input.focus();
+    };
+
+    const clearError = () => {
+      status.textContent = '';
+      delete status.dataset.kind;
+      input.removeAttribute('aria-invalid');
+    };
+
+    input.addEventListener('input', clearError);
+
+    // Route the response into the hidden frame so the page stays put.
+    const sinkName = form.dataset.sink;
+    const sink = sinkName
+      ? document.querySelector<HTMLIFrameElement>(`iframe[name="${sinkName}"]`)
+      : null;
+    if (sink && sinkName) form.target = sinkName;
+
+    const finish = () => {
+      markEveryBlockDone();
+      block.querySelector<HTMLElement>('.signup-done')?.focus();
+    };
+
+    form.addEventListener('submit', (event) => {
+      const email = input.value.trim();
+
+      // Validate first: empty, then the @, then the overall shape.
+      // Any failure stops the submit entirely.
+      if (!email) {
+        event.preventDefault();
+        fail(form.dataset.errEmpty || 'Enter your email address.');
+        return;
+      }
+      if (!email.includes('@')) {
+        event.preventDefault();
+        fail(form.dataset.errAt || 'That needs to be an email address — the @ is missing.');
+        return;
+      }
+      if (!EMAIL_RE.test(email)) {
+        event.preventDefault();
+        fail(form.dataset.errBad || "That doesn't look like a complete email address.");
+        return;
+      }
+
+      clearError();
+
+      // Not wired up yet: no field name, so there is nowhere to send this.
+      // Still thank the visitor — they did nothing wrong — but shout in the
+      // console so a half-connected form can't ship unnoticed.
+      if (form.dataset.unconfigured === 'true') {
+        event.preventDefault();
+        console.warn(
+          '[signup] Not connected: set EMAIL_FIELD_ID (or PREFILLED_LINK) in src/data/site.ts. ' +
+            'This address was NOT recorded:',
+          email
+        );
+        finish();
+        return;
+      }
+
+      // Google's own form sends these two per submission; mirror it.
+      const fbzx = form.querySelector<HTMLInputElement>('input[name="fbzx"]');
+      const stamp = form.querySelector<HTMLInputElement>('input[name="submissionTimestamp"]');
+      if (fbzx) fbzx.value = String(-Math.floor(Math.random() * 9e18));
+      if (stamp) stamp.value = String(Date.now());
+
+      // Let the native POST run into the hidden frame — no preventDefault.
+      button.disabled = true;
+      button.textContent = form.dataset.busy || 'Sending…';
+
+      if (!sink) {
+        // No frame available for some reason; the form will navigate away
+        // to Google's confirmation page, which still records the response.
+        return;
+      }
+
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        finish();
+      };
+
+      // Google's confirmation page is cross-origin, so the load event is all
+      // we get — and if something swallows it, the timeout still resolves
+      // the UI rather than leaving the button stuck on "Adding you…".
+      sink.addEventListener('load', done, { once: true });
+      window.setTimeout(done, CONFIRM_TIMEOUT_MS);
+    });
+  }
+
+  document.querySelectorAll<HTMLFormElement>('form.signup-form').forEach(wire);
+</script>
+
+<style>
+  .signup {
+    width: 100%;
+  }
+
+  /* Submission target. Kept out of the layout and out of the tab order,
+     but not `display: none` — some browsers won't post into a frame that
+     isn't rendered. */
+  .signup-sink {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .signup-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: stretch;
+  }
+
+  .signup-row-link {
+    justify-content: flex-start;
+  }
+
+  .signup-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: rgba(7, 10, 23, 0.72);
+    border: 1px solid var(--c-border-strong);
+    border-radius: var(--radius-pill);
+    padding: 0.95rem 1.25rem;
+    font-size: 1rem;
+    color: var(--c-text);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .signup-input::placeholder {
+    color: var(--c-text-dim);
+  }
+
+  .signup-input:hover {
+    border-color: rgba(146, 163, 226, 0.45);
+  }
+
+  .signup-input:focus {
+    outline: none;
+    border-color: var(--c-neon);
+    box-shadow: 0 0 0 4px rgba(46, 230, 196, 0.18);
+  }
+
+  /* A rejected address is flagged on the field itself, not just in the
+     message below it. */
+  .signup-input[aria-invalid='true'] {
+    border-color: #ff6fa2;
+  }
+
+  .signup-input[aria-invalid='true']:focus {
+    box-shadow: 0 0 0 4px rgba(255, 111, 162, 0.18);
+  }
+
+  .signup-submit {
+    flex: none;
+  }
+
+  .signup-submit[disabled] {
+    opacity: 0.7;
+    cursor: progress;
+  }
+
+  .arrow {
+    width: 18px;
+    height: 18px;
+  }
+
+  .signup-note {
+    font-size: 0.8rem;
+    color: var(--c-text-dim);
+    margin-top: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .signup-status {
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  .signup-status[data-kind='err'] {
+    color: #ff8fb4;
+    margin-top: 0.7rem;
+  }
+
+  .signup-full {
+    max-width: 34rem;
+  }
+
+  .signup-full .signup-input {
+    padding-block: 1.05rem;
+  }
+
+  /* ---- Thank-you state -------------------------------------------------
+     Sits in the same slot the form occupied, so nothing around it shifts. */
+  .signup-done {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    max-width: 34rem;
+    padding: 1.15rem 1.3rem 1.25rem;
+    border-radius: var(--radius);
+    border: 1px solid rgba(46, 230, 196, 0.4);
+    background: linear-gradient(135deg, rgba(46, 230, 196, 0.13), rgba(125, 107, 255, 0.12));
+    animation: done-in 0.32s ease-out both;
+  }
+
+  .signup-done:focus-visible {
+    outline: 3px solid var(--c-neon);
+    outline-offset: 3px;
+  }
+
+  .done-mark {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--c-neon);
+    color: var(--c-on-neon);
+    box-shadow: 0 6px 20px -6px rgba(46, 230, 196, 0.8);
+  }
+
+  .done-mark svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .done-text strong {
+    display: block;
+    font-size: 1.06rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--c-text);
+    margin-bottom: 0.28rem;
+  }
+
+  .done-text p {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--c-text-muted);
+  }
+
+  @keyframes done-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Stack the field above the button on narrow screens so neither gets
+     squeezed — the button stays full width and unmissable. */
+  @media (max-width: 560px) {
+    .signup-row {
+      flex-direction: column;
+    }
+    .signup-submit {
+      width: 100%;
+    }
+  }
+</style>
